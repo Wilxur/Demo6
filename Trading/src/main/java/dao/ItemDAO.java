@@ -66,7 +66,12 @@ public class ItemDAO extends BaseDAO {
 
     // 获取所有在售物品
     public List<Item> getAllItemsOnSale() {
-        String sql = "SELECT i.*, u.username, u.phone FROM items i LEFT JOIN users u ON i.user_id = u.id WHERE i.status = '1' ORDER BY i.create_time DESC";
+        String sql = "SELECT i.*, u.username, u.phone, " +
+                "ub.username as buyer_username, ub.phone as buyer_phone " +
+                "FROM items i " +
+                "LEFT JOIN users u ON i.user_id = u.id " +
+                "LEFT JOIN users ub ON i.buyer_id = ub.id " +
+                "WHERE i.status = '1' ORDER BY i.create_time DESC";
 
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -88,11 +93,73 @@ public class ItemDAO extends BaseDAO {
                 item.setCategory(rs.getString("category"));
                 item.setStatus(rs.getString("status"));
                 item.setCreateTime(rs.getTimestamp("create_time"));
+                item.setBuyerId(rs.getInt("buyer_id"));
 
                 // 设置卖家信息
                 User seller = new User();
                 seller.setUsername(rs.getString("username"));
                 seller.setPhone(rs.getString("phone"));
+                item.setSeller(seller);
+
+                // 设置买家信息（如果已售出）
+                if (rs.getString("buyer_username") != null) {
+                    User buyer = new User();
+                    buyer.setUsername(rs.getString("buyer_username"));
+                    buyer.setPhone(rs.getString("buyer_phone"));
+                    item.setBuyer(buyer);
+                }
+
+                items.add(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, pstmt, rs);
+        }
+        return items;
+    }
+
+    // 购买物品
+    public boolean buyItem(Integer itemId, Integer buyerId) {
+        String sql = "UPDATE items SET buyer_id = ?, status = '0' WHERE id = ? AND status = '1'";
+        return update(sql, buyerId, itemId) > 0;
+    }
+
+    // 获取已购买的物品
+    public List<Item> getBoughtItemsByUserId(Integer userId) {
+        String sql = "SELECT i.*, u.username as seller_username, u.phone as seller_phone " +
+                "FROM items i " +
+                "LEFT JOIN users u ON i.user_id = u.id " +
+                "WHERE i.buyer_id = ? AND i.status = '0' " +
+                "ORDER BY i.create_time DESC";
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        List<Item> items = new java.util.ArrayList<>();
+
+        try {
+            conn = DBUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Item item = new Item();
+                item.setId(rs.getInt("id"));
+                item.setName(rs.getString("name"));
+                item.setDescription(rs.getString("description"));
+                item.setPrice(rs.getBigDecimal("price"));
+                item.setUserId(rs.getInt("user_id"));
+                item.setCategory(rs.getString("category"));
+                item.setStatus(rs.getString("status"));
+                item.setCreateTime(rs.getTimestamp("create_time"));
+                item.setBuyerId(rs.getInt("buyer_id"));
+
+                // 设置卖家信息
+                User seller = new User();
+                seller.setUsername(rs.getString("seller_username"));
+                seller.setPhone(rs.getString("seller_phone"));
                 item.setSeller(seller);
 
                 items.add(item);

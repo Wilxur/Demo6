@@ -1,7 +1,5 @@
 package pojo;
 
-
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -17,8 +15,14 @@ public class Item implements Serializable {
     private Date createTime;
     private Date updateTime;
 
+    // 添加购买者ID
+    private Integer buyerId;
+
     // 关联的用户信息（可选）
     private User seller;
+
+    // 添加购买者信息
+    private User buyer;
 
     // 构造方法
     public Item() {}
@@ -51,6 +55,12 @@ public class Item implements Serializable {
     public Date getUpdateTime() { return updateTime; }
     public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
 
+    public Integer getBuyerId() { return buyerId; }
+    public void setBuyerId(Integer buyerId) { this.buyerId = buyerId; }
+
     public User getSeller() { return seller; }
     public void setSeller(User seller) { this.seller = seller; }
+
+    public User getBuyer() { return buyer; }
+    public void setBuyer(User buyer) { this.buyer = buyer; }
 }

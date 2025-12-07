@@ -59,6 +59,9 @@ public class ItemServlet extends HttpServlet {
             case "addForm":
                 addForm(request, response);
                 break;
+            case "boughtItems":
+                boughtItems(request, response);
+                break;
             default:
                 request.setAttribute("msg", "无效的操作");
                 listItems(request, response);
@@ -387,6 +390,23 @@ public class ItemServlet extends HttpServlet {
         request.setAttribute("items", itemService.getItemsByUserId(user.getId()));
         request.setAttribute("searchResultTitle", "我的物品");
         request.getRequestDispatcher("/views/itemMy.jsp").forward(request, response);
+    }
+
+    /**
+     * 查看已购买的物品
+     */
+    private void boughtItems(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute(Constants.USER_SESSION_KEY);
+
+        if (user == null) {
+            request.setAttribute("msg", "请先登录");
+            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            return;
+        }
+
+        request.setAttribute("items", itemService.getBoughtItemsByUserId(user.getId()));
+        request.getRequestDispatcher("/views/itemBought.jsp").forward(request, response);
     }
 
     /**

@@ -22,6 +22,9 @@
             欢迎，${sessionScope.user_session.username} |
             <a href="${pageContext.request.contextPath}/views/itemAdd.jsp">发布物品</a> |
             <a href="${pageContext.request.contextPath}/item?action=myItems">我的物品</a> |
+            <a href="${pageContext.request.contextPath}/item?action=boughtItems">已购物品</a> |
+            <a href="${pageContext.request.contextPath}/order?action=myOrders">我的订单</a> |
+            <a href="${pageContext.request.contextPath}/order?action=mySales">我的销售</a> |
             <a href="${pageContext.request.contextPath}/user?action=logout">退出</a>
         </c:if>
         <c:if test="${empty sessionScope.user_session}">
@@ -62,13 +65,22 @@
                     <td>${item.createTime}</td>
                     <c:if test="${not empty sessionScope.user_session}">
                         <td>
-                            <c:if test="${sessionScope.user_session.id == item.userId}">
-                                <a href="${pageContext.request.contextPath}/views/itemEdit.jsp?id=${item.id}"
-                                   class="btn-edit">编辑</a>
-                                <a href="${pageContext.request.contextPath}/item?action=delete&id=${item.id}"
-                                   class="btn-delete"
-                                   onclick="return confirm('确定删除吗？')">删除</a>
-                            </c:if>
+                            <c:choose>
+                                <c:when test="${sessionScope.user_session.id == item.userId}">
+                                    <a href="${pageContext.request.contextPath}/views/itemEdit.jsp?id=${item.id}"
+                                       class="btn-edit">编辑</a>
+                                    <a href="${pageContext.request.contextPath}/item?action=delete&id=${item.id}"
+                                       class="btn-delete"
+                                       onclick="return confirm('确定删除吗？')">删除</a>
+                                </c:when>
+                                <c:when test="${item.status == '1'}">
+                                    <a href="${pageContext.request.contextPath}/order?action=buy&itemId=${item.id}"
+                                       class="btn-buy">购买</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="status-off">已售出</span>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
                     </c:if>
                 </tr>
